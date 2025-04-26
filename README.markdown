@@ -37,7 +37,7 @@ $$ y = \frac{\log(1 + a \cdot x^b)}{\log(1 + a)} $$
 
 2. **克隆倉庫**：
    ```bash
-   git clone https://github.com/<your-username>/ImageEnhance.git
+   git clone https://github.com/n680727/ImageEnhance.git
    ```
 
 3. **設置數據集**：
@@ -58,11 +58,7 @@ ImageEnhance/
 │   ├── HHO.m              # 哈里斯鷹優化演算法腳本
 ├── dataset/
 │   ├── darkface/          # 放置 DarkFace 數據集
-├── results/
-│   ├── output_images/     # 儲存增強後的圖像
-│   ├── convergence_plots/ # 儲存收斂曲線圖
 ├── README.md              # 專案說明文件
-├── LICENSE                # 授權文件
 ```
 
 ## 結果比較
@@ -96,7 +92,6 @@ ImageEnhance/
   </tr>
 </table>
 
-**說明**：請將原始圖像及三種演算法的增強結果（例如 `[HSV_formula3.png]`）上傳至 `results/` 資料夾，並更新上述檔案名稱（例如 `original_image.png`、`gwo_enhanced.png` 等）。圖像應為同一張圖像的不同處理版本，以清楚展示增強效果。
 
 ## 未來改進方向
 本專案尚未完成，未來可考慮以下改進：
@@ -113,9 +108,3 @@ ImageEnhance/
 
 ### 哈里斯鷹優化 (HHO)
 3. Heidari, A. A., Mirjalili, S., Faris, H., Aljarah, I., Mafarja, M., & Chen, H. (2019). Harris Hawks Optimization: Algorithm and Applications. *Future Generation Computer Systems*, 101, 646-667. [https://www.sciencedirect.com/science/article/abs/pii/S0167739X18313530](https://www.sciencedirect.com/science/article/abs/pii/S0167739X18313530)
-
-## 授權
-本專案採用 [MIT 授權](LICENSE)。歡迎使用、修改和分享，但請保留原作者資訊。
-
-## 聯繫方式
-如有問題或建議，請聯繫：<your-email@example.com> 或在 GitHub 上提交 issue。

@@ -20,8 +20,8 @@ end
 colorSpace = upper(colorSpace); % 轉為大寫以保持一致
 
 % 定義資料集路徑和輸出路徑
-datasetPath = 'D:\program\school\ImageEnhance\dataset\darkface1000'; % 資料集路徑
-outputBasePath = 'D:\program\school\ImageEnhance\dataset\GWO'; % 輸出路徑
+datasetPath = fullfile('dataset', 'darkface'); % 資料集路徑
+outputBasePath = fullfile('dataset', 'GWO'); % 輸出路徑
 
 % 確保輸出基礎資料夾存在
 if ~exist(outputBasePath, 'dir')

@@ -30,7 +30,7 @@ end
 
 % 獲取資料夾中所有 .png 檔案
 imageFiles = dir(fullfile(datasetPath, '*.png')); % 列出所有 .png 檔案
-numImages = min(1, length(imageFiles));
+numImages = min(1, length(imageFiles)); % 先測試 1 張
 %numImages = length(imageFiles); % 圖片總數
 
 % 檢查是否有圖片
@@ -44,9 +44,11 @@ fileNumbers = str2double(fileNames); % 將檔案名稱轉為數值（例如 '18'
 [~, sortIdx] = sort(fileNumbers); % 按照數值排序
 imageFiles = imageFiles(sortIdx); % 按數值順序重新排列檔案
 
-% 初始化用於儲存所有圖片的 PCQI 分數
-all_pcqi_scores = zeros(numImages, 3); % 處理後圖片：公式 1, 2, 3
-all_pcqi_scores_blended = zeros(numImages, 3); % 混合圖片：公式 1, 2, 3
+% 初始化用於儲存所有圖片的 PCQI 和 BRISQUE 分數（僅針對公式 3）
+all_pcqi_scores = zeros(numImages, 1); % 處理後圖片：僅公式 3
+all_pcqi_scores_blended = zeros(numImages, 1); % 混合圖片：僅公式 3
+all_brisque_scores = zeros(numImages, 1); % 處理後圖片：僅公式 3 (BRISQUE)
+all_brisque_scores_blended = zeros(numImages, 1); % 混合圖片：僅公式 3 (BRISQUE)
 
 % 定義混合權重 alpha (範圍 0 到 1)
 alpha = 0.5; % 你可以調整這個值，例如 0.3 表示原始圖片佔 30%，處理後圖片佔 70%
@@ -103,7 +105,7 @@ for imgIdx = 1:numImages
     SearchAgents_no = 30; % 鷹群數量
     Max_iter = 20; % 迭代次數
     dim = 2; % 優化變數數量 (a 和 b)
-    lb = [1, 0.5]; % 下界 (a: 1, b: 0.01)
+    lb = [1, 0.5]; % 下界 (a: 1, b: 0.5)
     ub = [100, 3]; % 上界 (a: 100, b: 3)
     
     % 初始化鷹群位置
@@ -240,41 +242,31 @@ for imgIdx = 1:numImages
     disp(['圖片 ', baseName, ' - HHO 收斂曲線已儲存為 ', convergenceFileName]);
     close(gcf); % 關閉圖形視窗
     
-    % 使用最佳參數重新處理圖片
+    % 使用最佳參數重新處理圖片（僅公式 3）
     a = best_a;
     b = best_b;
     
-    % 初始化用於儲存 PCQI 分數的變數
-    pcqi_scores = zeros(1, 3); % 1 種色彩空間 x 3 個公式（處理後圖片）
-    pcqi_scores_blended = zeros(1, 3); % 1 種色彩空間 x 3 個公式（混合圖片）
+    % 初始化用於儲存 PCQI 和 BRISQUE 分數的變數（僅針對公式 3）
+    pcqi_scores = zeros(1, 1); % 僅公式 3（處理後圖片）
+    pcqi_scores_blended = zeros(1, 1); % 僅公式 3（混合圖片）
+    brisque_scores = zeros(1, 1); % 僅公式 3（處理後圖片，BRISQUE）
+    brisque_scores_blended = zeros(1, 1); % 僅公式 3（混合圖片，BRISQUE）
     
-    % 根據選擇的色彩空間進行處理
+    % 根據選擇的色彩空間進行處理（僅處理公式 3）
     switch colorSpace
         case 'HSV'
             % 將 RGB 轉換為 HSV
             hsvImage = rgb2hsv(inputImageNorm);
             x = hsvImage(:,:,3); % 提取 V 通道（亮度）
             
-            % 公式 1: y = log(1 + a * x) / log(1 + a)
-            y1 = log(1 + a * x) / log(1 + a);
-            y1 = max(0, min(1, y1));
-            
-            % 公式 2: y = x^b
-            y2 = x.^b;
-            y2 = max(0, min(1, y2));
-            
-            % 公式 3: y = log(1 + a * x^b) / log(1 + a)
+            % 僅計算公式 3: y = log(1 + a * x^b) / log(1 + a)
             y3 = log(1 + a * (x.^b)) / log(1 + a);
             y3 = max(0, min(1, y3));
             
             % 將處理後的 V 通道放回 HSV 圖像
-            hsvImage1 = hsvImage; hsvImage1(:,:,3) = y1;
-            hsvImage2 = hsvImage; hsvImage2(:,:,3) = y2;
             hsvImage3 = hsvImage; hsvImage3(:,:,3) = y3;
             
             % 將 HSV 轉回 RGB
-            outputImage1 = uint8(gather(hsv2rgb(hsvImage1) * 255));
-            outputImage2 = uint8(gather(hsv2rgb(hsvImage2) * 255));
             outputImage3 = uint8(gather(hsv2rgb(hsvImage3) * 255));
             
         case 'LAB'
@@ -282,26 +274,14 @@ for imgIdx = 1:numImages
             labImage = rgb2lab(inputImageNorm);
             x = labImage(:,:,1) / 100; % 提取 L 通道（亮度）並正規化到 [0, 1]
             
-            % 公式 1: y = log(1 + a * x) / log(1 + a)
-            y1 = log(1 + a * x) / log(1 + a);
-            y1 = max(0, min(1, y1));
-            
-            % 公式 2: y = x^b
-            y2 = x.^b;
-            y2 = max(0, min(1, y2));
-            
-            % 公式 3: y = log(1 + a * x^b) / log(1 + a)
+            % 僅計算公式 3: y = log(1 + a * x^b) / log(1 + a)
             y3 = log(1 + a * (x.^b)) / log(1 + a);
             y3 = max(0, min(1, y3));
             
             % 將處理後的 L 通道放回 LAB 圖像
-            labImage1 = labImage; labImage1(:,:,1) = y1 * 100;
-            labImage2 = labImage; labImage2(:,:,1) = y2 * 100;
             labImage3 = labImage; labImage3(:,:,1) = y3 * 100;
             
             % 將 LAB 轉回 RGB
-            outputImage1 = uint8(gather(lab2rgb(labImage1) * 255));
-            outputImage2 = uint8(gather(lab2rgb(labImage2) * 255));
             outputImage3 = uint8(gather(lab2rgb(labImage3) * 255));
             
         case 'YCBCR'
@@ -309,110 +289,98 @@ for imgIdx = 1:numImages
             ycbcrImage = rgb2ycbcr(inputImageNorm);
             x = ycbcrImage(:,:,1); % 提取 Y 通道（亮度）
             
-            % 公式 1: y = log(1 + a * x) / log(1 + a)
-            y1 = log(1 + a * x) / log(1 + a);
-            y1 = max(0, min(1, y1));
-            
-            % 公式 2: y = x^b
-            y2 = x.^b;
-            y2 = max(0, min(1, y2));
-            
-            % 公式 3: y = log(1 + a * x^b) / log(1 + a)
+            % 僅計算公式 3: y = log(1 + a * x^b) / log(1 + a)
             y3 = log(1 + a * (x.^b)) / log(1 + a);
             y3 = max(0, min(1, y3));
             
             % 將處理後的 Y 通道放回 YCbCr 圖像
-            ycbcrImage1 = ycbcrImage; ycbcrImage1(:,:,1) = y1;
-            ycbcrImage2 = ycbcrImage; ycbcrImage2(:,:,1) = y2;
             ycbcrImage3 = ycbcrImage; ycbcrImage3(:,:,1) = y3;
             
             % 將 YCbCr 轉回 RGB
-            outputImage1 = uint8(gather(ycbcr2rgb(ycbcrImage1) * 255));
-            outputImage2 = uint8(gather(ycbcr2rgb(ycbcrImage2) * 255));
             outputImage3 = uint8(gather(ycbcr2rgb(ycbcrImage3) * 255));
             
         otherwise
             error('程式碼錯誤：未正確設置色彩空間！');
     end
     
-    % 儲存處理後圖片到對應子資料夾
-    imwrite(outputImage1, fullfile(parentFolder, colorSpace, [colorSpace, '_formula1', outputExt]));
-    imwrite(outputImage2, fullfile(parentFolder, colorSpace, [colorSpace, '_formula2', outputExt]));
+    % 儲存處理後圖片到對應子資料夾（僅公式 3）
     imwrite(outputImage3, fullfile(parentFolder, colorSpace, [colorSpace, '_formula3', outputExt]));
     
-    % 混合圖片
+    % 混合圖片（僅公式 3）
     inputImageGPU = gpuArray(double(inputImage));
-    blendedImage1 = uint8(gather(alpha * inputImageGPU + (1 - alpha) * gpuArray(double(outputImage1))));
-    blendedImage2 = uint8(gather(alpha * inputImageGPU + (1 - alpha) * gpuArray(double(outputImage2))));
     blendedImage3 = uint8(gather(alpha * inputImageGPU + (1 - alpha) * gpuArray(double(outputImage3))));
     
-    % 儲存混合圖片到對應子資料夾
-    imwrite(blendedImage1, fullfile(parentFolder, colorSpace, [colorSpace, '_formula_mix1', outputExt]));
-    imwrite(blendedImage2, fullfile(parentFolder, colorSpace, [colorSpace, '_formula_mix2', outputExt]));
+    % 儲存混合圖片到對應子資料夾（僅公式 3）
     imwrite(blendedImage3, fullfile(parentFolder, colorSpace, [colorSpace, '_formula_mix3', outputExt]));
     
-    % 計算 PCQI（處理後圖片）
-    outputGray1 = double(rgb2gray(outputImage1));
-    outputGray2 = double(rgb2gray(outputImage2));
+    % 計算 PCQI（處理後圖片，僅公式 3）
     outputGray3 = double(rgb2gray(outputImage3));
-    [mpcqi1, ~] = PCQI(gather(inputGray), outputGray1);
-    [mpcqi2, ~] = PCQI(gather(inputGray), outputGray2);
     [mpcqi3, ~] = PCQI(gather(inputGray), outputGray3);
-    pcqi_scores(1, :) = [mpcqi1, mpcqi2, mpcqi3];
+    pcqi_scores(1) = mpcqi3;
     
-    % 計算 PCQI（混合圖片）
-    blendedGray1 = double(rgb2gray(blendedImage1));
-    blendedGray2 = double(rgb2gray(blendedImage2));
+    % 計算 PCQI（混合圖片，僅公式 3）
     blendedGray3 = double(rgb2gray(blendedImage3));
-    [mpcqi1_blended, ~] = PCQI(gather(inputGray), blendedGray1);
-    [mpcqi2_blended, ~] = PCQI(gather(inputGray), blendedGray2);
     [mpcqi3_blended, ~] = PCQI(gather(inputGray), blendedGray3);
-    pcqi_scores_blended(1, :) = [mpcqi1_blended, mpcqi2_blended, mpcqi3_blended];
+    pcqi_scores_blended(1) = mpcqi3_blended;
     
-    % 儲存 PCQI 分數
-    all_pcqi_scores(imgIdx, :) = pcqi_scores;
-    all_pcqi_scores_blended(imgIdx, :) = pcqi_scores_blended;
+    % 計算 BRISQUE（處理後圖片，僅公式 3）
+    brisque_score3 = brisque(outputImage3);
+    brisque_scores(1) = brisque_score3;
     
-    % 顯示 PCQI 分數（處理後圖片和混合圖片）
+    % 計算 BRISQUE（混合圖片，僅公式 3）
+    brisque_score3_blended = brisque(blendedImage3);
+    brisque_scores_blended(1) = brisque_score3_blended;
+    
+    % 儲存 PCQI 和 BRISQUE 分數
+    all_pcqi_scores(imgIdx) = pcqi_scores;
+    all_pcqi_scores_blended(imgIdx) = pcqi_scores_blended;
+    all_brisque_scores(imgIdx) = brisque_scores;
+    all_brisque_scores_blended(imgIdx) = brisque_scores_blended;
+    
+    % 顯示 PCQI 分數（僅公式 3）
     disp(['圖片 ', baseName, ' - PCQI 分數（處理後圖片） - ', colorSpace, ' 色彩空間：']);
-    disp(['公式 1: ', num2str(mpcqi1)]);
-    disp(['公式 2: ', num2str(mpcqi2)]);
     disp(['公式 3: ', num2str(mpcqi3)]);
     
     disp(['圖片 ', baseName, ' - PCQI 分數（混合圖片） - ', colorSpace, ' 色彩空間：']);
-    disp(['公式 1: ', num2str(mpcqi1_blended)]);
-    disp(['公式 2: ', num2str(mpcqi2_blended)]);
     disp(['公式 3: ', num2str(mpcqi3_blended)]);
+    
+    % 顯示 BRISQUE 分數（僅公式 3）
+    disp(['圖片 ', baseName, ' - BRISQUE 分數（處理後圖片） - ', colorSpace, ' 色彩空間：']);
+    disp(['公式 3: ', num2str(brisque_score3)]);
+    
+    disp(['圖片 ', baseName, ' - BRISQUE 分數（混合圖片） - ', colorSpace, ' 色彩空間：']);
+    disp(['公式 3: ', num2str(brisque_score3_blended)]);
     
     % 顯示儲存完成訊息
     disp(['圖片 ', baseName, ' - 處理完成：']);
-    disp([[colorSpace, ' 處理圖片已儲存為 '], fullfile(parentFolder, colorSpace, [colorSpace, '_formula1', outputExt]), ', ', ...
-          fullfile(parentFolder, colorSpace, [colorSpace, '_formula2', outputExt]), ', ', ...
-          fullfile(parentFolder, colorSpace, [colorSpace, '_formula3', outputExt])]);
-    disp([[colorSpace, ' 混合圖片已儲存為 '], fullfile(parentFolder, colorSpace, [colorSpace, '_formula_mix1', outputExt]), ', ', ...
-          fullfile(parentFolder, colorSpace, [colorSpace, '_formula_mix2', outputExt]), ', ', ...
-          fullfile(parentFolder, colorSpace, [colorSpace, '_formula_mix3', outputExt])]);
+    disp([[colorSpace, ' 處理圖片已儲存為 '], fullfile(parentFolder, colorSpace, [colorSpace, '_formula3', outputExt])]);
+    disp([[colorSpace, ' 混合圖片已儲存為 '], fullfile(parentFolder, colorSpace, [colorSpace, '_formula_mix3', outputExt])]);
 end
 
-% 計算 PCQI 平均值（僅考慮成功處理的圖片）
-valid_indices = find(all_pcqi_scores(:, 1) ~= 0); % 找到非零的 PCQI 分數（即成功處理的圖片）
+% 計算 PCQI 和 BRISQUE 平均值（僅考慮成功處理的圖片，僅公式 3）
+valid_indices = find(all_pcqi_scores ~= 0); % 找到非零的 PCQI 分數（即成功處理的圖片）
 if ~isempty(valid_indices)
-    avg_pcqi_scores = mean(all_pcqi_scores(valid_indices, :), 1);
-    avg_pcqi_scores_blended = mean(all_pcqi_scores_blended(valid_indices, :), 1);
+    avg_pcqi_scores = mean(all_pcqi_scores(valid_indices), 1);
+    avg_pcqi_scores_blended = mean(all_pcqi_scores_blended(valid_indices), 1);
+    avg_brisque_scores = mean(all_brisque_scores(valid_indices), 1);
+    avg_brisque_scores_blended = mean(all_brisque_scores_blended(valid_indices), 1);
     
     % 顯示 PCQI 平均值
     disp('所有圖片的 PCQI 平均值（處理後圖片）：');
-    disp(['公式 1: ', num2str(avg_pcqi_scores(1))]);
-    disp(['公式 2: ', num2str(avg_pcqi_scores(2))]);
-    disp(['公式 3: ', num2str(avg_pcqi_scores(3))]);
+    disp(['公式 3: ', num2str(avg_pcqi_scores)]);
     
     disp('所有圖片的 PCQI 平均值（混合圖片）：');
-    disp(['公式 1: ', num2str(avg_pcqi_scores_blended(1))]);
-    disp(['公式 2: ', num2str(avg_pcqi_scores_blended(2))]);
-    disp(['公式 3: ', num2str(avg_pcqi_scores_blended(3))]);
+    disp(['公式 3: ', num2str(avg_pcqi_scores_blended)]);
+    
+    % 顯示 BRISQUE 平均值
+    disp('所有圖片的 BRISQUE 平均值（處理後圖片）：');
+    disp(['公式 3: ', num2str(avg_brisque_scores)]);
+    
+    disp('所有圖片的 BRISQUE 平均值（混合圖片）：');
+    disp(['公式 3: ', num2str(avg_brisque_scores_blended)]);
     
     % 顯示成功處理的圖片數量
     disp(['成功處理的圖片數量：', num2str(length(valid_indices)), ' / ', num2str(numImages)]);
 else
-    disp('沒有成功處理的圖片，無法計算 PCQI 平均值。');
+    disp('沒有成功處理的圖片，無法計算 PCQI 和 BRISQUE 平均值。');
 end

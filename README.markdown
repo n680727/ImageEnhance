@@ -113,9 +113,3 @@ ImageEnhance/
 
 ### 哈里斯鷹優化 (HHO)
 3. Heidari, A. A., Mirjalili, S., Faris, H., Aljarah, I., Mafarja, M., & Chen, H. (2019). Harris Hawks Optimization: Algorithm and Applications. *Future Generation Computer Systems*, 101, 646-667. [https://www.sciencedirect.com/science/article/abs/pii/S0167739X18313530](https://www.sciencedirect.com/science/article/abs/pii/S0167739X18313530)
-
-## 授權
-本專案採用 [MIT 授權](LICENSE)。歡迎使用、修改和分享，但請保留原作者資訊。
-
-## 聯繫方式
-如有問題或建議，請聯繫：<your-email@example.com> 或在 GitHub 上提交 issue。

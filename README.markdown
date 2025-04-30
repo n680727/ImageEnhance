@@ -101,10 +101,10 @@ ImageEnhance/
 ## 參考資料
 
 ### 灰狼優化 (GWO)
-1. Mirjalili, S., Mirjalili, S. M., & Lewis, A. (2014). Grey Wolf Optimizer. *Advances in Engineering Software*, 69, 46-61. [https://www.sciencedirect.com/science/article/abs/pii/S0965997813001853](https://www.sciencedirect.com/science/article/abs/pii/S0965997813001853)
+https://github.com/alimirjalili/GWO
 
 ### 海洋掠食者演算法 (MPA)
-2. Faramarzi, A., Heidarinejad, M., Mirjalili, S., & Gandomi, A. H. (2020). Marine Predators Algorithm: A Nature-Inspired Metaheuristic. *Expert Systems with Applications*, 152, 113377. [https://www.sciencedirect.com/science/article/abs/pii/S0957417420301639](https://www.sciencedirect.com/science/article/abs/pii/S0957417420301639)
+https://github.com/afshinfaramarzi/Marine-Predators-Algorithm
 
 ### 哈里斯鷹優化 (HHO)
-3. Heidari, A. A., Mirjalili, S., Faris, H., Aljarah, I., Mafarja, M., & Chen, H. (2019). Harris Hawks Optimization: Algorithm and Applications. *Future Generation Computer Systems*, 101, 646-667. [https://www.sciencedirect.com/science/article/abs/pii/S0167739X18313530](https://www.sciencedirect.com/science/article/abs/pii/S0167739X18313530)
+https://github.com/aliasgharheidaricom/Harris-Hawks-Optimization-Algorithm-and-Applications
